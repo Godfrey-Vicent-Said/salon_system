@@ -6,13 +6,13 @@ $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = new User();
-    $user->setEmail($_POST['email']);
+    // Inasoma kutoka kwenye input mpya inayoitwa 'login_identity'
+    $user->setEmail($_POST['login_identity']);
     $user->setPassword($_POST['password']);
     
     $login_result = $user->login();
     
     if ($login_result === true) {
-        // ELEKEZA UKURASA KULINGANA NA JUKUMU (ROLE)
         if ($_SESSION['role'] === 'admin') {
             header("Location: admin_dashboard.php");
         } else {
@@ -57,10 +57,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="error-msg"><?php echo $message; ?></div>
     <?php endif; ?>
 
-    <form action="index.php" method="POST">
+    <form action="index.php?v=2" method="POST">
         <div class="form-group">
             <label>Barua Pepe / Username</label>
-            <input type="text" name="email" required placeholder="Weka email au username">
+            <input type="text" name="login_identity" required placeholder="Weka email au username">
         </div>
         <div class="form-group">
             <label>Nenosiri (Password)</label>
