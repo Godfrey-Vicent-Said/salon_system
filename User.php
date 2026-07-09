@@ -52,6 +52,20 @@ class User {
             return "Tafadhali jaza nafasi zote.";
         }
 
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // MABORESHO: LOGIN YA MOJA KWA MOJA YA ADMIN (BILA REJESTA)
+        // Admin anaweza kutumia email 'admin@salon.com' au username tu 'admin'
+        if (($this->email === 'admin@salon.com' || $this->email === 'admin') && $this->password === 'admin123') {
+            $_SESSION['user_id'] = 0;
+            $_SESSION['username'] = 'Admin';
+            $_SESSION['role'] = 'admin';
+            return true;
+        }
+
+        // Kama sio admin, nenda database kutafuta Customer ya kawaida
         $query = "SELECT * FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -61,24 +75,14 @@ class User {
 
             if($decrypted_email === trim($this->email)) {
                 if(password_verify($this->password, $row['password'])) {
-                    
-                    if (session_status() == PHP_SESSION_NONE) {
-                        session_start();
-                    }
-                    
-                    // Kulinda ishu ya user_id tuseme inasoma column sahihi ya table yako
                     $_SESSION['user_id'] = isset($row['user_id']) ? $row['user_id'] : null;
                     $_SESSION['username'] = trim(Security::decrypt($row['username']));
-                    
-                    // Kusafisha Decrypted Role kuwa safi kabisa kwa ajili ya dashboard
-                    $clean_role = trim(Security::decrypt($row['role']));
-                    $_SESSION['role'] = strtolower($clean_role);
-                    
+                    $_SESSION['role'] = 'customer'; // Wote wa kwenye DB ni customers sasa
                     return true;
                 }
             }
         }
-        return "Barua pepe (Email) au nenosiri si sahihi.";
+        return "Mtumiaji au nenosiri si sahihi.";
     }
 }
 ?>

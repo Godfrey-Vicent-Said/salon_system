@@ -12,7 +12,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $login_result = $user->login();
     
     if ($login_result === true) {
-        header("Location: dashboard.php");
+        // ELEKEZA UKURASA KULINGANA NA JUKUMU (ROLE)
+        if ($_SESSION['role'] === 'admin') {
+            header("Location: admin_dashboard.php");
+        } else {
+            header("Location: dashboard.php");
+        }
         exit();
     } else {
         $message = $login_result;
@@ -54,8 +59,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <form action="index.php" method="POST">
         <div class="form-group">
-            <label>Barua Pepe (Email)</label>
-            <input type="email" name="email" required placeholder="Weka email yako">
+            <label>Barua Pepe / Username</label>
+            <input type="text" name="email" $_POST['email'] ?? '' required placeholder="Weka email au username">
         </div>
         <div class="form-group">
             <label>Nenosiri (Password)</label>
