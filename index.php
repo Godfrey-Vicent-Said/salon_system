@@ -60,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <form action="index.php" method="POST">
         <div class="form-group">
             <label>Barua Pepe / Username</label>
-            <input type="text" name="email" $_POST['email'] ?? '' required placeholder="Weka email au username">
+            <input type="text" name="email" required placeholder="Weka email au username">
         </div>
         <div class="form-group">
             <label>Nenosiri (Password)</label>
