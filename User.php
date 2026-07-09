@@ -4,7 +4,7 @@ require_once 'Database.php';
 require_once 'Security.php';
 
 class User {
-    // Encapsulation: Mali (properties) zote ziko private kulinda data dhidi ya ufikiaji wa nje wa moja kwa moja
+    // Encapsulation: Mali (properties) zote ziko private kulinda data
     private $conn;
     private $table_name = "users";
 
@@ -13,13 +13,13 @@ class User {
     private $password;
     private $role;
 
-    // Constructor: Inajiendesha yenyewe kutengeneza muunganisho wa database tunapounda Object[cite: 1]
+    // Constructor: Inatengeneza muunganisho wa database tunapounda Object
     public function __construct() {
         $database = new Database();
         $this->conn = $database->getConnection();
     }
 
-    // Setters na Getters (Sehemu ya Encapsulation)
+    // Setters na Getters
     public function setUsername($username) { $this->username = htmlspecialchars(strip_tags($username)); }
     public function setEmail($email) { $this->email = htmlspecialchars(strip_tags($email)); }
     public function setPassword($password) { $this->password = $password; }
@@ -27,24 +27,21 @@ class User {
 
     // 1. Mbinu ya Kusajili Mtumiaji Mpya (Register)
     public function register() {
-        // Form Validation ya msingi (Kuhakikisha hakuna kilicho wazi)[cite: 1]
         if(empty($this->username) || empty($this->email) || empty($this->password)) {
             return "Tafadhali jaza nafasi zote.";
         }
 
-        // Kulinda database dhidi ya SQL Injection kwa kutumia Prepared Statements (PDO)[cite: 1]
         $query = "INSERT INTO " . $this->table_name . " SET username = :username, email = :email, password = :password, role = :role";
         $stmt = $this->conn->prepare($query);
 
-        // USALAMA: Kufunga (Encrypt) row data zote kabla ya kuzihifadhi kulingana na document[cite: 1]
+        // USALAMA: Kufunga (Encrypt) data kabla ya kuzihifadhi kulingana na muundo wa mfumo
         $enc_username = Security::encrypt($this->username);
         $enc_email = Security::encrypt($this->email);
         $enc_role = Security::encrypt($this->role);
         
-        // Nenosiri (Password) tunaitumia password_hash (salama zaidi kuliko encryption ya kawaida)
+        // Nenosiri (Password) tunaitumia password_hash
         $hashed_password = password_hash($this->password, PASSWORD_BCRYPT);
 
-        // Binding parameters kwenye PDO statement[cite: 1]
         $stmt->bindParam(':username', $enc_username);
         $stmt->bindParam(':email', $enc_email);
         $stmt->bindParam(':password', $hashed_password);
@@ -62,27 +59,29 @@ class User {
             return "Tafadhali jaza nafasi zote.";
         }
 
-        // Kwenye database data ziko encrypted, hivyo inabidi tuchukue watumiaji wote na ku-decrypt ili kupata anayelingana
-        // Hii ni kwa sababu encryption yetu inazalisha string tofauti kila wakati (kwa sababu ya IV ya kipekee)[cite: 1]
         $query = "SELECT * FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
 
         while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            // Decrypt data ili tuzilinganishe na kile alichochapa mtumiaji[cite: 1]
+            // Decrypt email ili tuilinganishe na alichoandika mtumiaji
             $decrypted_email = Security::decrypt($row['email']);
 
             if($decrypted_email === $this->email) {
-                // Kuhakiki kama password aliyoingiza inalingana na ile hashed password
+                // Kuhakiki kama password inalingana na ile hashed password
                 if(password_verify($this->password, $row['password'])) {
                     
-                    // Session Management: Kuanzisha session na kuhifadhi data za mtumiaji zilizofunguliwa[cite: 1]
+                    // Session Management: Kuanzisha session na kuhifadhi data zilizofunguliwa
                     if (session_status() == PHP_SESSION_NONE) {
                         session_start();
                     }
-                    $_SESSION['user_id'] = $row['user_id'];
+                    
+                    // Tunasave jina la column kulingana na database yako (user_id au id)
+                    $_SESSION['user_id'] = isset($row['user_id']) ? $row['user_id'] : (isset($row['id']) ? $row['id'] : null);
                     $_SESSION['username'] = Security::decrypt($row['username']);
-                    $_SESSION['role'] = Security::decrypt($row['role']);
+                    
+                    // MABORESHO: Tunalazimisha role kuwa herufi ndogo (admin/customer) ili dashboard isome vizuri
+                    $_SESSION['role'] = strtolower(Security::decrypt($row['role']));
                     
                     return true;
                 }

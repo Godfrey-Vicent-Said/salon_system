@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $login_result = $user->login();
     
     if ($login_result === true) {
-        // Baada ya kufanikiwa kuingia, itampeleka kwenye dashboard (Tutatengeneza baadae)
+        // Baada ya login kufanikiwa, session zote zimeshawekwa ndani ya User.php
         header("Location: dashboard.php");
         exit();
     } else {
@@ -34,7 +34,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
-            /* Picha ya mazingira ya Salon kutoka Unsplash */
             background: url('https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1920') no-repeat center center fixed;
             background-size: cover;
             height: 100vh;
@@ -46,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.6); /* Kufanya background iwe giza kidogo ili maneno yasomeke */
+            background: rgba(0, 0, 0, 0.6);
             z-index: 1;
         }
         .login-container {
