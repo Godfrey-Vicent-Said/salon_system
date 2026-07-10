@@ -1,24 +1,40 @@
 <?php
 // index.php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once 'User.php';
 
 $message = "";
 
-// index.php (Marekebisho ya dharura ya kuingia kama Admin)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email_input = trim($_POST['email'] ?? '');
     $password_input = $_POST['password'] ?? '';
 
-    // NJIA YA MKATO: Kama umeandika admin@gmail.com na admin123, unapitishwa moja kwa moja
+    // 1. NJIA YA MKATO: Kama umeandika admin@gmail.com na admin123, unapitishwa moja kwa moja bila database kukuzuia
     if ($email_input === 'admin@gmail.com' && $password_input === 'admin123') {
-        $_SESSION['user_id'] = 1; // ID ya admin kwenye database yako
+        $_SESSION['user_id'] = 1; 
         $_SESSION['username'] = 'Admin';
         $_SESSION['role'] = 'admin';
         header("Location: admin_dashboard.php");
         exit();
     }
     
-    // ... (Kodi ya kawaida ya database inaendelea hapa chini)
+    // 2. NJIA YA KAWAIDA: Kama siyo admin wa bypass, mfumo unaenda kuangalia kwenye Database (kwa ajili ya wateja)
+    $user = new User();
+    $user->setEmail($email_input);
+    $user->setPassword($password_input);
+    
+    $login_result = $user->login();
+    
+    if ($login_result === true) {
+        if ($_SESSION['role'] === 'admin') {
+            header("Location: admin_dashboard.php");
+        } else {
+            header("Location: dashboard.php");
+        }
+        exit();
     } else {
         $message = $login_result;
     }
