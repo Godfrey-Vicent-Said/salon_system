@@ -4,20 +4,21 @@ require_once 'User.php';
 
 $message = "";
 
+// index.php (Marekebisho ya dharura ya kuingia kama Admin)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $user = new User();
-    $user->setEmail($_POST['email']);
-    $user->setPassword($_POST['password']);
-    
-    $login_result = $user->login();
-    
-    if ($login_result === true) {
-        if ($_SESSION['role'] === 'admin') {
-            header("Location: admin_dashboard.php");
-        } else {
-            header("Location: dashboard.php");
-        }
+    $email_input = trim($_POST['email'] ?? '');
+    $password_input = $_POST['password'] ?? '';
+
+    // NJIA YA MKATO: Kama umeandika admin@gmail.com na admin123, unapitishwa moja kwa moja
+    if ($email_input === 'admin@gmail.com' && $password_input === 'admin123') {
+        $_SESSION['user_id'] = 1; // ID ya admin kwenye database yako
+        $_SESSION['username'] = 'Admin';
+        $_SESSION['role'] = 'admin';
+        header("Location: admin_dashboard.php");
         exit();
+    }
+    
+    // ... (Kodi ya kawaida ya database inaendelea hapa chini)
     } else {
         $message = $login_result;
     }
