@@ -3,12 +3,27 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+require_once 'Database.php';
+require_once 'Security.php';
 
-// Ulinzi: Kama sio admin, mfukuze arudi kwenye login
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header("Location: index.php");
     exit();
 }
+
+$database = new Database();
+$conn = $database->getConnection();
+
+// Vuta oda zote kwa kutumia majina sahihi ya column kutoka kwenye .sql yako
+$query = "SELECT a.appointment_id, u.username, s.service_name, s.price, a.appointment_date, a.status 
+          FROM appointments a
+          JOIN users u ON a.user_id = u.user_id
+          JOIN services s ON a.service_id = s.service_id
+          ORDER BY a.appointment_id DESC";
+
+$stmt = $conn->prepare($query);
+$stmt->execute();
+$appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="sw">
@@ -17,70 +32,62 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Salon System - Admin Panel</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #f1f2f6; color: #2f3542; }
         .navbar { background: #ff4757; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
         .logout-btn { background: #2f3542; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; }
         .container { padding: 30px; max-width: 1200px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; margin-top: 20px; }
         .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h2, h3 { margin-bottom: 20px; color: #2f3542; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; }
-        .btn-submit { background: #2ed573; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
-        table { width: 100%; border-collapse: collapse; background: white; }
+        h3 { margin-bottom: 20px; color: #ff4757; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eceff1; }
-        th { background-color: #f8f9fa; color: #57606f; }
+        th { background-color: #f8f9fa; font-weight: 600; }
         .badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #ffbc00; color: white; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <h2>SALON MANAGEMENT SYSTEM (ADMIN)</h2>
+    <h2>SALON SYSTEM - ADMIN PANEL</h2>
     <div>
-        <span>Habari, <strong><?php echo htmlspecialchars($_SESSION['username']); ?> (Admin)</strong></span>
+        <span style="margin-right: 15px;">Habari, <strong>Admin (admin@gmail.com)</strong></span>
         <a href="logout.php" class="logout-btn">Ondoka (Logout)</a>
     </div>
 </div>
 
 <div class="container">
-    <div class="grid">
-        <div class="card">
-            <h3>Ongeza Huduma Mpya</h3>
-            <form action="process_service.php" method="POST">
-                <div class="form-group">
-                    <label>Jina la Huduma</label>
-                    <input type="text" name="service_name" required placeholder="Mfano: Kusuka">
-                </div>
-                <div class="form-group">
-                    <label>Bei (Tsh)</label>
-                    <input type="number" name="price" required placeholder="Mfano: 15000">
-                </div>
-                <button type="submit" class="btn-submit">Hifadhi Huduma</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h3>Orodha ya Miadi (Appointments)</h3>
-            <table>
-                <thead>
+    <div class="card">
+        <h3>Orodha ya Oda Zilizowekwa na Wateja (Proof of Orders)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Oda ID</th>
+                    <th>Jina la Mteja</th>
+                    <th>Huduma Aliyochagua</th>
+                    <th>Bei (Tsh)</th>
+                    <th>Tarehe ya Oda</th>
+                    <th>Hali (Status)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (count($appointments) > 0): ?>
+                    <?php foreach ($appointments as $app): ?>
+                        <tr>
+                            <td>#<?php echo $app['appointment_id']; ?></td>
+                            <td><strong><?php echo htmlspecialchars(trim(Security::decrypt($app['username'] ?? ''))); ?></strong></td>
+                            <td><?php echo htmlspecialchars($app['service_name']); ?></td>
+                            <td><?php echo number_format(floatval($app['price'])); ?> /=</td>
+                            <td><?php echo htmlspecialchars($app['appointment_date']); ?></td>
+                            <td><span class="badge"><?php echo htmlspecialchars($app['status']); ?></span></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
                     <tr>
-                        <th>Mteja</th>
-                        <th>Huduma</th>
-                        <th>Hali (Status)</th>
+                        <td colspan="6" style="text-align: center; color: #a4b0be; padding: 30px;">Hakuna oda zilizopo kwenye mfumo kwa sasa.</td>
                     </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>frey</td>
-                        <td>Kunyoa Kawaida</td>
-                        <td><span class="badge">Inasubiri</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 

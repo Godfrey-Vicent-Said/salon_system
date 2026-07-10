@@ -15,8 +15,8 @@ class Security {
         
         $encrypted_data = openssl_encrypt($data, self::$method, self::$encryption_key, 0, $iv);
         
-        // Tunachanganya IV na data kisha tunazigeuza kuwa base64 ili zihifadhike vizuri kwenye database
-        return base64_encode($iv . '::' . $encrypted_data);
+        // MAREKEBISHO: Tunageuza IV kuwa hex ili iwe salama kutenganishwa kwa '::' bila kuvuruga binary bytes
+        return base64_encode(bin2hex($iv) . '::' . $encrypted_data);
     }
 
     // 2. Mbinu ya kufungua data (Decryption)
@@ -26,7 +26,16 @@ class Security {
         $decrypted_raw = base64_decode($data);
         if (strpos($decrypted_raw, '::') === false) return $data; 
         
-        list($iv, $encrypted_data) = explode('::', $decrypted_raw, 2);
+        list($iv_hex, $encrypted_data) = explode('::', $decrypted_raw, 2);
+        
+        // MAREKEBISHO: Tunairudisha hex kuwa binary halisi ya IV kabla ya kufungua data
+        $iv = hex2bin($iv_hex);
+        
+        // Kulinda urefu wa IV usilete makosa
+        $iv_length = openssl_cipher_iv_length(self::$method);
+        if (strlen($iv) !== $iv_length) {
+            return $data;
+        }
         
         return openssl_decrypt($encrypted_data, self::$method, self::$encryption_key, 0, $iv);
     }

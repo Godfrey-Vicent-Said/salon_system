@@ -6,8 +6,7 @@ $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = new User();
-    // Inasoma kutoka kwenye input mpya inayoitwa 'login_identity'
-    $user->setEmail($_POST['login_identity']);
+    $user->setEmail($_POST['email']);
     $user->setPassword($_POST['password']);
     
     $login_result = $user->login();
@@ -57,10 +56,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="error-msg"><?php echo $message; ?></div>
     <?php endif; ?>
 
-    <form action="index.php?v=2" method="POST">
+    <form action="index.php" method="POST">
         <div class="form-group">
-            <label>Barua Pepe / Username</label>
-            <input type="text" name="login_identity" required placeholder="Weka email au username">
+            <label>Barua Pepe (Email)</label>
+            <input type="email" name="email" required placeholder="Weka email yako">
         </div>
         <div class="form-group">
             <label>Nenosiri (Password)</label>

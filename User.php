@@ -56,16 +56,15 @@ class User {
             session_start();
         }
 
-        // MABORESHO: LOGIN YA MOJA KWA MOJA YA ADMIN (BILA REJESTA)
-        // Admin anaweza kutumia email 'admin@salon.com' au username tu 'admin'
-        if (($this->email === 'admin@salon.com' || $this->email === 'admin') && $this->password === 'admin123') {
-            $_SESSION['user_id'] = 0;
+        // MABORESHO: LOGIN YA ADMIN KUTUMIA EMAIL YA admin@gmail.com
+        if ($this->email === 'admin@gmail.com' && $this->password === 'admin123') {
+            $_SESSION['user_id'] = 0; // Admin hana haja ya ID kutoka kwenye DB
             $_SESSION['username'] = 'Admin';
             $_SESSION['role'] = 'admin';
             return true;
         }
 
-        // Kama sio admin, nenda database kutafuta Customer ya kawaida
+        // Kama sio admin, nenda database kutafuta Customer wa kawaida
         $query = "SELECT * FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -75,9 +74,10 @@ class User {
 
             if($decrypted_email === trim($this->email)) {
                 if(password_verify($this->password, $row['password'])) {
-                    $_SESSION['user_id'] = isset($row['user_id']) ? $row['user_id'] : null;
+                    // Muhimu: Kwenye .sql yako column inaitwa user_id
+                    $_SESSION['user_id'] = $row['user_id'];
                     $_SESSION['username'] = trim(Security::decrypt($row['username']));
-                    $_SESSION['role'] = 'customer'; // Wote wa kwenye DB ni customers sasa
+                    $_SESSION['role'] = 'customer'; 
                     return true;
                 }
             }

@@ -7,9 +7,15 @@ $success = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = new User();
-    $user->setUsername($_POST['username']);
-    $user->setEmail($_POST['email']);
-    $user->setPassword($_POST['password']);
+    
+    // Kusafisha pembejeo ili kuzuia nafasi tupu za makusudi
+    $username = trim($_POST['username'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    $user->setUsername($username);
+    $user->setEmail($email);
+    $user->setPassword($password);
     $user->setRole('customer'); // Role ya kawaida kwa anayejisajili mtandaoni
     
     $register_result = $user->register();
@@ -29,7 +35,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Salon System - Register</title>
     <style>
-        /* CSS ni ile ile kama ya index.php ili kuleta muonekano unaoendana */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body {
             background: url('https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1920') no-repeat center center fixed;
@@ -70,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .error-msg { background: rgba(255, 71, 87, 0.3); border: 1px solid #ff4757; }
         .success-msg { background: rgba(46, 213, 115, 0.3); border: 1px solid #2ed573; }
         p { text-align: center; margin-top: 20px; font-size: 14px; }
-        a { color: #2ed573; text-decoration: none; font-weight: bold; }
+        a { color: #ff4757; text-decoration: none; font-weight: bold; }
         a:hover { text-decoration: underline; }
     </style>
 </head>
@@ -92,17 +97,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <div class="form-group">
             <label>Barua Pepe (Email)</label>
-            <input type="email" name="email" required placeholder="Mfano: john@gmail.com">
-        </div>
-        <div class="form-group">
-            <label>Nenosiri (Password)</label>
-            <input type="password" name="password" required placeholder="Usiishare na mtu">
-        </div>
-        <button type="submit" class="btn">Tengeneza Akaunti</button>
-    </form>
-    
-    <p>Tayari una akaunti? <a href="index.php">Ingia hapa</a></p>
-</div>
-
-</body>
-</html>
+            <input type="email

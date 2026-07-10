@@ -1,10 +1,9 @@
 <?php
 // Service.php
 require_once 'Database.php';
-require_once 'Security.php';
 
 class Service {
-    private $conn;
+    public $conn; // Imebadilishwa kuwa public ili dashboard.php iweze kuifikia connection ya PDO moja kwa moja
     private $table_name = "services";
 
     private $service_name;
@@ -28,12 +27,9 @@ class Service {
         $query = "INSERT INTO " . $this->table_name . " SET service_name = :name, price = :price";
         $stmt = $this->conn->prepare($query);
 
-        // USALAMA: Kufunga data (Encryption) kabla ya kuhifadhi kwenye database[cite: 1]
-        $enc_name = Security::encrypt($this->service_name);
-        $enc_price = Security::encrypt($this->price);
-
-        $stmt->bindParam(':name', $enc_name);
-        $stmt->bindParam(':price', $enc_price);
+        // MAREKEBISHO: Orodha ya huduma na bei hazihitaji encryption ili ziendane na mfumo wetu wa SQL na Admin JOIN query
+        $stmt->bindParam(':name', $this->service_name);
+        $stmt->bindParam(':price', $this->price);
 
         if($stmt->execute()) {
             return true;
@@ -41,7 +37,7 @@ class Service {
         return "Imeshindikana kuongeza huduma.";
     }
 
-    // 2. READ: Kuchukua Huduma Zote na Kuzifungua (Decryption)
+    // 2. READ: Kuchukua Huduma Zote
     public function readAll() {
         $query = "SELECT * FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);
@@ -49,11 +45,11 @@ class Service {
 
         $services = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            // Decrypt data wakati wa kuzitoa kwenye database ili zionekane vizuri[cite: 1]
+            // MAREKEBISHO: Tunazisoma moja kwa moja bila decryption
             $services[] = [
                 'service_id' => $row['service_id'],
-                'service_name' => Security::decrypt($row['service_name']),
-                'price' => Security::decrypt($row['price'])
+                'service_name' => $row['service_name'],
+                'price' => $row['price']
             ];
         }
         return $services;
